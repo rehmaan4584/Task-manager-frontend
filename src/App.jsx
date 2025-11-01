@@ -37,6 +37,12 @@ function App() {
             Logout
           </button>
         </div>
+        <div className="absolute right-6"
+        onClick={()=>handleLogout()}>
+          <button className="bg-black-500 hover:bg-red-600 text-white rounded-lg px-3 py-1 text-sm shadow-md transition">
+            Logout
+          </button>
+        </div>
       </nav>
 
       <hr />
