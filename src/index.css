@@ -2,8 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
-*{
+* {
   padding: 0;
   margin: 0;
   box-sizing: border-box;
+}
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  body {
+    @apply bg-zinc-950 text-zinc-100;
+  }
+  ::selection {
+    @apply bg-amber-500/30 text-white;
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply relative min-h-screen overflow-hidden bg-zinc-950;
+    background-image: radial-gradient(
+        ellipse 120% 80% at 50% -30%,
+        rgba(245, 158, 11, 0.12),
+        transparent
+      ),
+      radial-gradient(ellipse 70% 50% at 100% 0%, rgba(139, 92, 246, 0.08), transparent),
+      radial-gradient(ellipse 50% 40% at 0% 100%, rgba(59, 130, 246, 0.06), transparent);
+  }
+  .glass-card {
+    @apply rounded-2xl border border-white/[0.08] bg-zinc-900/60 shadow-premium backdrop-blur-2xl;
+  }
+  .input-premium {
+    @apply w-full rounded-xl border border-zinc-700/80 bg-zinc-950/50 px-4 py-3.5 text-zinc-100 shadow-inner placeholder:text-zinc-500 transition focus:border-amber-500/50 focus:outline-none focus:ring-2 focus:ring-amber-500/20;
+  }
 }
