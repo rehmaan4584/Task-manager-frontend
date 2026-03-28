@@ -16,10 +16,10 @@ export const deleteTodo = async (id) => {
     return deleteTask?.data?.data;
 }
 
-export const editTodo = async (task) => {
-    const editedTask = await api.put(`/task/edit`,task);
-    return editedTask?.data?.data;
-}
+export const editTodo = async (id, data) => {
+  const res = await api.put(`/task/${id}`, data);
+  return res?.data?.data;
+};
 
 export const toggleTodo = async (id) => {
     const res = await api.patch(`/task/${id}/toggle`);

@@ -1,7 +1,9 @@
 import axios from "axios";
 
 export const api = axios.create({
-    baseURL: "https://task-manager-backend-production-675e.up.railway.app/api"
+    // baseURL: "https://task-manager-backend-production-675e.up.railway.app/api"
+    baseURL: "http://localhost:5000/api"
+
 })
 
 api.interceptors.request.use((config)=>{

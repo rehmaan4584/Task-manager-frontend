@@ -35,7 +35,12 @@ const Todo = () => {
   }
 
   const editingTodoFn = async (task) => {
-    const editedTodo = await editTodo(task);
+    const editedTodo = await editTodo(
+    editingTodo._id,
+    { taskName: editingTodo.taskName }
+  );
+
+  if (!editedTodo) return;
     setTodos((prev)=>{
      return prev.map((t)=> t._id === editedTodo._id ? editedTodo : t);
     });
@@ -110,7 +115,7 @@ const Todo = () => {
               />
               <button
                 className="bg-green-500 hover:bg-green-600 text-white text-sm rounded-md px-3 py-1 transition"
-                onClick={() => editingTodoFn(editingTodo)}
+                onClick={editingTodoFn}
               >
                 Save
               </button>
