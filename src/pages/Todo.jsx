@@ -12,6 +12,7 @@ import {
 const Todo = () => {
   const [todos, setTodos] = useState([]);
   const [task, setTask] = useState("");
+  const [reminderTime, setReminderTime] = useState("");
   const [editingTodo, setEditingTodo] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -20,9 +21,10 @@ const Todo = () => {
 
   const addTodo = async () => {
     if (task.trim() === "") return;
-    const newTodo = await createTodo({ taskName: task.trim() });
+    const newTodo = await createTodo({ taskName: task.trim(), willCompleteAt: reminderTime || null });
     setTodos((prev) => [...prev, newTodo]);
     setTask("");
+    setReminderTime("");
   };
 
   const getAllTodo = async () => {
@@ -79,7 +81,7 @@ const Todo = () => {
 
   return (
     <div className="page-shell min-h-[calc(100vh-4rem)] px-4 pb-16 pt-10 sm:px-6">
-      <div className="mx-auto max-w-lg">
+      <div className="mx-auto max-w-2xl">
         <header className="mb-8 text-center sm:text-left">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-500/90">
             Today
@@ -87,14 +89,14 @@ const Todo = () => {
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Your tasks
           </h1>
-          <p className="mt-2 max-w-md text-sm text-zinc-400">
-            Tap a task to mark it done. Stay focused — one list, clear
-            priorities.
+          <p className="mt-2 max-w-lg text-sm text-zinc-400">
+          Tap a task to mark it done. Set reminders to stay on track — one list, clear priorities.
           </p>
         </header>
 
         <div className="glass-card p-6 sm:p-8">
-          <div className="flex flex-col gap-3 sm:flex-row sm:gap-3">
+          <div className="flex flex-col gap-3">
+            {/* Row 1: Task Input */}
             <input
               type="text"
               value={task}
@@ -106,16 +108,26 @@ const Todo = () => {
                 }
               }}
               placeholder="What needs doing?"
-              aria-label="New task"
-              className="input-premium sm:flex-1"
+              className="input-premium w-full"
             />
-            <button
-              type="button"
-              onClick={addTodo}
-              className="shrink-0 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-3.5 text-sm font-semibold text-zinc-950 shadow-glow transition hover:from-amber-400 hover:to-amber-500 sm:w-auto"
-            >
-              Add
-            </button>
+
+            {/* Row 2: Reminder + Button */}
+            <div className="flex gap-3">
+              <input
+                type="datetime-local"
+                value={reminderTime}
+                onChange={(e) => setReminderTime(e.target.value)}
+                className="input-premium flex-1"
+              />
+
+              <button
+                type="button"
+                onClick={addTodo}
+                className="rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-3.5 text-sm font-semibold text-zinc-950"
+              >
+                Add
+              </button>
+            </div>
           </div>
 
           {loading ? (
@@ -182,19 +194,17 @@ const Todo = () => {
                       <button
                         type="button"
                         onClick={() => toggleTodoFn(todo._id)}
-                        className={`flex max-w-full flex-1 cursor-pointer select-none text-left text-base font-medium transition sm:pr-4 ${
-                          todo.isCompleted
-                            ? "text-zinc-500 line-through decoration-zinc-600"
-                            : "text-zinc-100 hover:text-amber-200/90"
-                        }`}
+                        className={`flex max-w-full flex-1 cursor-pointer select-none text-left text-base font-medium transition sm:pr-4 ${todo.isCompleted
+                          ? "text-zinc-500 line-through decoration-zinc-600"
+                          : "text-zinc-100 hover:text-amber-200/90"
+                          }`}
                         aria-pressed={todo.isCompleted}
                       >
                         <span
-                          className={`mr-3 mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition ${
-                            todo.isCompleted
-                              ? "border-amber-500/80 bg-amber-500/20 text-amber-400"
-                              : "border-zinc-600 group-hover:border-zinc-500"
-                          }`}
+                          className={`mr-3 mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition ${todo.isCompleted
+                            ? "border-amber-500/80 bg-amber-500/20 text-amber-400"
+                            : "border-zinc-600 group-hover:border-zinc-500"
+                            }`}
                           aria-hidden
                         >
                           {todo.isCompleted ? "✓" : ""}
@@ -203,6 +213,17 @@ const Todo = () => {
                           {todo.taskName}
                         </span>
                       </button>
+                      {todo.willCompleteAt && (
+                        <span className="ml-8 text-xs text-zinc-400">
+                          ⏰{" "}
+                          {new Date(todo.willCompleteAt).toLocaleString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            day: "2-digit",
+                            month: "short",
+                          })}
+                        </span>
+                      )}
                       <div className="flex shrink-0 gap-2">
                         <button
                           type="button"
