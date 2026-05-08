@@ -2,6 +2,7 @@ import { AuthContext } from "../context/AuthContext";
 import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../services/authService";
+import { useToast } from "../toast/ToastProvider.jsx";
 
 const Login = () => {
   const { login } = useContext(AuthContext);
@@ -9,6 +10,7 @@ const Login = () => {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,12 +24,14 @@ const Login = () => {
       if (data?.token) {
         localStorage.setItem("token", data.token);
       }
+      addToast({ message: "Logged in successfully", type: "success" });
       navigate("/");
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
         "Could not log in. Check your details and try again.";
       setError(msg);
+      addToast({ message: msg, type: "error" });
     } finally {
       setSubmitting(false);
     }

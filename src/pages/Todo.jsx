@@ -8,37 +8,90 @@ import {
   editTodo,
   toggleTodo,
 } from "../services/todoService";
+import { useToast } from "../toast/ToastProvider.jsx";
+import {
+  DatePickerField,
+  TimePickerField,
+} from "../components/ReminderPickers.jsx";
 
 const Todo = () => {
   const [todos, setTodos] = useState([]);
   const [task, setTask] = useState("");
+  const [reminderDate, setReminderDate] = useState("");
   const [reminderTime, setReminderTime] = useState("");
+  const [openReminder, setOpenReminder] = useState(null);
   const [editingTodo, setEditingTodo] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const inputRef = useRef(null);
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   const addTodo = async () => {
     if (task.trim() === "") return;
-    const newTodo = await createTodo({ taskName: task.trim(), willCompleteAt: reminderTime || null });
-    setTodos((prev) => [...prev, newTodo]);
-    setTask("");
-    setReminderTime("");
+    const reminderAt =
+      reminderDate && reminderTime ? `${reminderDate}T${reminderTime}` : null;
+
+    if ((reminderDate && !reminderTime) || (!reminderDate && reminderTime)) {
+      addToast({
+        message: "Please select both reminder date and reminder time.",
+        type: "warning",
+      });
+      return;
+    }
+
+    try {
+      const newTodo = await createTodo({
+        taskName: task.trim(),
+        willCompleteAt: reminderAt,
+      });
+      setTodos((prev) => [...prev, newTodo]);
+
+      const reminderMsg = reminderAt
+        ? `Reminder set for ${new Date(reminderAt).toLocaleString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            day: "2-digit",
+            month: "short",
+          })}`
+        : "";
+
+      addToast({ message: `Task added.${reminderMsg}`, type: "success" });
+      setTask("");
+      setReminderDate("");
+      setReminderTime("");
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        "Could not add task. Please try again.";
+      addToast({ message: msg, type: "error" });
+    }
   };
 
   const getAllTodo = async () => {
     try {
       const res = await getAllTodos();
       setTodos(Array.isArray(res) ? res : []);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message || "Could not load tasks.";
+      addToast({ message: msg, type: "error" });
     } finally {
       setLoading(false);
     }
   };
 
   const deleteTodoFn = async (id) => {
-    const deletedTask = await deleteTodo(id);
-    setTodos((prev) => prev.filter((todo) => todo._id !== deletedTask._id));
+    try {
+      const deletedTask = await deleteTodo(id);
+      setTodos((prev) =>
+        prev.filter((todo) => todo._id !== deletedTask?._id),
+      );
+      addToast({ message: "Task deleted", type: "info" });
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Could not delete task.";
+      addToast({ message: msg, type: "error" });
+    }
   };
 
   const startEdit = (t) => {
@@ -46,22 +99,39 @@ const Todo = () => {
   };
 
   const editingTodoFn = async () => {
-    const editedTodo = await editTodo(editingTodo._id, {
-      taskName: editingTodo.taskName.trim(),
-    });
+    try {
+      const editedTodo = await editTodo(editingTodo._id, {
+        taskName: editingTodo.taskName.trim(),
+      });
 
-    if (!editedTodo) return;
-    setTodos((prev) =>
-      prev.map((t) => (t._id === editedTodo._id ? editedTodo : t)),
-    );
-    setEditingTodo(null);
+      if (!editedTodo) return;
+      setTodos((prev) =>
+        prev.map((t) => (t._id === editedTodo._id ? editedTodo : t)),
+      );
+      setEditingTodo(null);
+      addToast({ message: "Task updated", type: "success" });
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Could not update task.";
+      addToast({ message: msg, type: "error" });
+    }
   };
 
   const toggleTodoFn = async (id) => {
-    const toggledTodo = await toggleTodo(id);
-    setTodos((prev) =>
-      prev.map((t) => (t._id === toggledTodo._id ? toggledTodo : t)),
-    );
+    try {
+      const toggledTodo = await toggleTodo(id);
+      setTodos((prev) =>
+        prev.map((t) => (t._id === toggledTodo._id ? toggledTodo : t)),
+      );
+      addToast({
+        message: toggledTodo?.isCompleted
+          ? "Task marked complete"
+          : "Task marked incomplete",
+        type: "info",
+      });
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Could not update task.";
+      addToast({ message: msg, type: "error" });
+    }
   };
 
   useEffect(() => {
@@ -96,34 +166,70 @@ const Todo = () => {
 
         <div className="glass-card p-6 sm:p-8">
           <div className="flex flex-col gap-3">
-            {/* Row 1: Task Input */}
-            <input
-              type="text"
-              value={task}
-              onChange={(e) => setTask(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addTodo();
-                }
-              }}
-              placeholder="What needs doing?"
-              className="input-premium w-full"
-            />
-
-            {/* Row 2: Reminder + Button */}
-            <div className="flex gap-3">
+            {/* Field 1: Task */}
+            <div>
+              <label
+                htmlFor="todo-task"
+                className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-zinc-400"
+              >
+                Task Name
+              </label>
               <input
-                type="datetime-local"
-                value={reminderTime}
-                onChange={(e) => setReminderTime(e.target.value)}
-                className="input-premium flex-1"
+                id="todo-task"
+                type="text"
+                value={task}
+                onChange={(e) => setTask(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addTodo();
+                  }
+                }}
+                placeholder="What needs doing?"
+                className="input-premium w-full"
               />
+            </div>
+
+            {/* Field 2: Reminder date + time */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto]">
+              <div>
+                <label
+                  htmlFor="todo-reminder-date"
+                  className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-zinc-400"
+                >
+                  Reminder Date
+                </label>
+                <DatePickerField
+                  id="todo-reminder-date"
+                  value={reminderDate}
+                  onChange={setReminderDate}
+                  isOpen={openReminder === "date"}
+                  onOpen={() => setOpenReminder("date")}
+                  onClose={() => setOpenReminder(null)}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="todo-reminder-time"
+                  className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-zinc-400"
+                >
+                  Reminder Time
+                </label>
+                <TimePickerField
+                  id="todo-reminder-time"
+                  value={reminderTime}
+                  onChange={setReminderTime}
+                  isOpen={openReminder === "time"}
+                  onOpen={() => setOpenReminder("time")}
+                  onClose={() => setOpenReminder(null)}
+                />
+              </div>
 
               <button
                 type="button"
                 onClick={addTodo}
-                className="rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-3.5 text-sm font-semibold text-zinc-950"
+                className="rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-3.5 text-sm font-semibold text-zinc-950 sm:self-end"
               >
                 Add
               </button>

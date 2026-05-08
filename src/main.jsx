@@ -6,11 +6,16 @@ import App from "./App.jsx";
 import Signup from "./pages/Signup.jsx";
 import Login from "./pages/Login.jsx";
 import Todo from "./pages/Todo.jsx";
+import { ToastProvider } from "./toast/ToastProvider.jsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: (
+      <ToastProvider>
+        <App />
+      </ToastProvider>
+    ),
     children: [
       { path: "/", element: <Todo /> },
       { path: "/signup", element: <Signup /> },

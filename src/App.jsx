@@ -1,13 +1,69 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { useContext } from "react";
+import { useContext, useRef } from "react";
 import { AuthContext } from "./context/AuthContext";
+import { io } from "socket.io-client";
+import { useEffect } from "react";
+import { useToast } from "./toast/ToastProvider.jsx";
+
+function decodeJwt(token) {
+  // Minimal JWT payload decode (no verification). Backend payload is `{ id, sessionId }`.
+  try {
+    const part = token?.split(".")?.[1];
+    if (!part) return null;
+
+    const base64 = part.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    const json = atob(padded);
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
 
 function App() {
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const socketRef = useRef(null);
+  const { addToast } = useToast();
+
+  // socket connection
+  useEffect(() => {
+    const socket = io("http://localhost:5000");
+    socketRef.current = socket;
+
+    socket.on("reminder", (data) => {
+      addToast({
+        message: data?.message ?? "Reminder",
+        type: "warning",
+        durationMs: null,
+      });
+    });
+
+    socket.on("connect", () => {
+      const token = localStorage.getItem("token");
+      const decoded = token ? decodeJwt(token) : null;
+      const userId = user?._id ?? decoded?.id;
+      if (userId) socket.emit("join", userId);
+    });
+
+    return () => socket.disconnect();
+    
+  }, []);  
+
+  // Re-join when user becomes available (login after refresh can happen after mount).
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket?.connected) return;
+
+    const token = localStorage.getItem("token");
+    const decoded = token ? decodeJwt(token) : null;
+    const userId = user?._id ?? decoded?.id;
+    if (userId) socket.emit("join", userId);
+  }, [user?._id]);
 
   const handleLogout = () => {
     logout();
+    addToast({ message: "Logged out", type: "info" });
     navigate("/login");
   };
 
