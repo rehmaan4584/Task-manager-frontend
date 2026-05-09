@@ -20,6 +20,11 @@ function decodeJwt(token) {
   }
 }
 
+function getSocketUserId(user, token) {
+  const decoded = token ? decodeJwt(token) : null;
+  return user?._id ?? user?.user?._id ?? decoded?.id ?? null;
+}
+
 function App() {
   const { logout, user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -41,14 +46,13 @@ function App() {
 
     socket.on("connect", () => {
       const token = localStorage.getItem("token");
-      const decoded = token ? decodeJwt(token) : null;
-      const userId = user?._id ?? decoded?.id;
+      const userId = getSocketUserId(user, token);
       if (userId) socket.emit("join", userId);
     });
 
     return () => socket.disconnect();
     
-  }, []);  
+  }, [addToast, user]);  
 
   // Re-join when user becomes available (login after refresh can happen after mount).
   useEffect(() => {
@@ -56,10 +60,9 @@ function App() {
     if (!socket?.connected) return;
 
     const token = localStorage.getItem("token");
-    const decoded = token ? decodeJwt(token) : null;
-    const userId = user?._id ?? decoded?.id;
+    const userId = getSocketUserId(user, token);
     if (userId) socket.emit("join", userId);
-  }, [user?._id]);
+  }, [user]);
 
   const handleLogout = () => {
     logout();

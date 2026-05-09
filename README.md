@@ -1,16 +1,86 @@
-# React + Vite
+# Task Studio Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Modern, responsive frontend for a full-stack task manager with auth flows, reminder creation, and real-time reminder notifications.
 
-Currently, two official plugins are available:
+## Why This Project
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This frontend is built to demonstrate production-style React skills for portfolio and remote-role evaluation:
+- clean UI architecture
+- robust API integration
+- real-time user feedback via Socket.IO
+- clear error/loading states
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19
+- React Router DOM 7
+- Axios
+- Socket.IO Client
+- Tailwind CSS
+- Vite
+- ESLint
 
-## Expanding the ESLint configuration
+## Core Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- User login and signup pages
+- Auth token handling with API interceptor
+- Task CRUD UI (create, read, edit, delete)
+- Reminder date and time selection UX
+- Real-time reminder toast notifications from backend sockets
+- Loading, error, empty, and success states for better UX
+
+## Project Structure
+
+```txt
+src/
+  components/        # reusable UI pieces (e.g., reminder pickers)
+  context/           # auth context
+  pages/             # Login, Signup, Todo
+  services/          # API clients for auth/tasks
+  toast/             # toast provider + notifications
+  App.jsx            # layout + socket connection setup
+  main.jsx           # router + providers bootstrap
+```
+
+## Local Setup
+
+### 1) Install dependencies
+
+```bash
+npm install
+```
+
+### 2) Start frontend
+
+```bash
+npm run dev
+```
+
+Default app URL:
+- `http://localhost:3000`
+
+## Backend Dependency
+
+This frontend expects backend API at:
+- `http://localhost:5000/api`
+
+And socket server at:
+- `http://localhost:5000`
+
+If your backend runs on another host/port, update:
+- `src/services/api.js`
+- `src/App.jsx` (socket URL)
+
+## Scripts
+
+- `npm run dev` - Start dev server
+- `npm run build` - Build production bundle
+- `npm run preview` - Preview production build locally
+- `npm run lint` - Run lint checks
+
+## What I Learned Building This
+
+- Managing auth-aware API requests with axios interceptors
+- Keeping socket join/re-join behavior reliable after login and refresh
+- Designing smooth stateful UX for async task workflows
+- Structuring React project modules for maintainability and clarity
