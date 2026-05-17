@@ -29,9 +29,14 @@ const Todo = () => {
 
   const addTodo = async () => {
     if (task.trim() === "") return;
-    const localDate =
-      reminderDate && reminderTime ? new Date(`${reminderDate}T${reminderTime}`) : null;
-    const reminderAt = localDate ? localDate.toISOString() : null;
+    let reminderAt = null;
+    if (reminderDate && reminderTime) {
+      const [year, month, day] = reminderDate.split("-");
+      const [hours, minutes] = reminderTime.split(":");
+      // Note: month is 0-indexed in JS Date constructor
+      const localDate = new Date(year, month - 1, day, hours, minutes);
+      reminderAt = localDate.toISOString();
+    }
 
     if ((reminderDate && !reminderTime) || (!reminderDate && reminderTime)) {
       addToast({
