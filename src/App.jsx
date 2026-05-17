@@ -33,7 +33,7 @@ function App() {
 
   // socket connection
   useEffect(() => {
-    const socket = io("http://localhost:5000");
+    const socket = io(import.meta.env.VITE_SOCKET_URL || undefined);
     socketRef.current = socket;
 
     socket.on("reminder", (data) => {
