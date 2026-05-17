@@ -29,8 +29,9 @@ const Todo = () => {
 
   const addTodo = async () => {
     if (task.trim() === "") return;
-    const reminderAt =
-      reminderDate && reminderTime ? `${reminderDate}T${reminderTime}` : null;
+    const localDate =
+      reminderDate && reminderTime ? new Date(`${reminderDate}T${reminderTime}`) : null;
+    const reminderAt = localDate ? localDate.toISOString() : null;
 
     if ((reminderDate && !reminderTime) || (!reminderDate && reminderTime)) {
       addToast({
