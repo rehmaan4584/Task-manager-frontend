@@ -180,11 +180,11 @@ export function DatePickerField({
 
   const label = value
     ? new Date(value + "T12:00:00").toLocaleDateString(undefined, {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    })
     : null;
 
   const selectDay = (day) => {
@@ -372,19 +372,21 @@ export function TimePickerField({
 
   const label = value
     ? (() => {
-        const [hh, mm] = value.split(":");
-        const d = new Date(2000, 0, 1, parseInt(hh, 10), parseInt(mm, 10));
-        return d.toLocaleTimeString(undefined, {
-          hour: "numeric",
-          minute: "2-digit",
-        });
-      })()
+      const [hh, mm] = value.split(":");
+      const d = new Date(2000, 0, 1, parseInt(hh, 10), parseInt(mm, 10));
+      return d.toLocaleTimeString(undefined, {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    })()
     : null;
 
   const apply = () => {
-    onChange(toHhMm(draft.h, draft.m, draft.period));
     onClose();
   };
+  useEffect(() => {
+    onChange(toHhMm(draft.h, draft.m, draft.period));
+  }, [draft]);
 
   const timePanel = isOpen && (
     <div
