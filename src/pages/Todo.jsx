@@ -29,16 +29,39 @@ const Todo = () => {
 
   const addTodo = async () => {
     if (task.trim() === "") return;
+    
+    // Capture state immediately into local variables to avoid stale state issues
+    const currentReminderDate = reminderDate;
+    const currentReminderTime = reminderTime;
+
     let reminderAt = null;
-    if (reminderDate && reminderTime) {
-      const [year, month, day] = reminderDate.split("-");
-      const [hours, minutes] = reminderTime.split(":");
-      // Note: month is 0-indexed in JS Date constructor
-      const localDate = new Date(year, month - 1, day, hours, minutes);
+    let delayMs = null;
+
+    if (currentReminderDate && currentReminderTime) {
+      const [year, month, day] = currentReminderDate.split("-");
+      const [hours, minutes] = currentReminderTime.split(":");
+      
+      const localDate = new Date(
+        parseInt(year, 10),
+        parseInt(month, 10) - 1,
+        parseInt(day, 10),
+        parseInt(hours, 10),
+        parseInt(minutes, 10)
+      );
+      
       reminderAt = localDate.toISOString();
+      delayMs = localDate.getTime() - Date.now();
+
+      if (delayMs <= 0) {
+        addToast({
+          message: "Reminder must be in the future.",
+          type: "warning",
+        });
+        return;
+      }
     }
 
-    if ((reminderDate && !reminderTime) || (!reminderDate && reminderTime)) {
+    if ((currentReminderDate && !currentReminderTime) || (!currentReminderDate && currentReminderTime)) {
       addToast({
         message: "Please select both reminder date and reminder time.",
         type: "warning",
@@ -50,6 +73,7 @@ const Todo = () => {
       const newTodo = await createTodo({
         taskName: task.trim(),
         willCompleteAt: reminderAt,
+        delayMs: delayMs, // Send direct delay to bypass clock skew
       });
       setTodos((prev) => [...prev, newTodo]);
 

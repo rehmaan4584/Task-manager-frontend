@@ -61,7 +61,7 @@ function from24h(h24) {
 }
 
 function parseHhMm(s) {
-  if (!s || !/^\d{1,2}:\d{2}$/.test(s)) return { h: 9, m: 0, period: "AM" };
+  if (!s || !/^\d{1,2}:\d{2}$/.test(s)) return null;
   const [hs, ms] = s.split(":");
   const h24 = Math.min(23, Math.max(0, parseInt(hs, 10)));
   const minute = Math.min(59, Math.max(0, parseInt(ms, 10)));
@@ -348,14 +348,16 @@ export function TimePickerField({
   const panelRef = useRef(null);
 
   const [draft, setDraft] = useState(() => {
-    const p = parseHhMm(value);
+    const p = parseHhMm(value) || { h: 9, m: 0, period: "AM" };
     return { h: p.h, m: p.m, period: p.period };
   });
 
   useEffect(() => {
     const p = parseHhMm(value);
-    setDraft({ h: p.h, m: p.m, period: p.period });
-  }, [value, isOpen]);
+    if (p) {
+      setDraft({ h: p.h, m: p.m, period: p.period });
+    }
+  }, [value]);
 
   useClickOutsideTwo(wrapRef, panelRef, isOpen, onClose);
 
@@ -384,9 +386,12 @@ export function TimePickerField({
   const apply = () => {
     onClose();
   };
-  useEffect(() => {
-    onChange(toHhMm(draft.h, draft.m, draft.period));
-  }, [draft]);
+
+  const updateDraft = (patch) => {
+    const next = { ...draft, ...patch };
+    setDraft(next);
+    onChange(toHhMm(next.h, next.m, next.period));
+  };
 
   const timePanel = isOpen && (
     <div
@@ -414,7 +419,7 @@ export function TimePickerField({
               <button
                 key={h}
                 type="button"
-                onClick={() => setDraft((d) => ({ ...d, h }))}
+                onClick={() => updateDraft({ h })}
                 className={[
                   "flex w-full items-center justify-center rounded-lg py-2 text-sm font-medium transition",
                   draft.h === h
@@ -436,7 +441,7 @@ export function TimePickerField({
               <button
                 key={m}
                 type="button"
-                onClick={() => setDraft((d) => ({ ...d, m }))}
+                onClick={() => updateDraft({ m })}
                 className={[
                   "flex w-full items-center justify-center rounded-lg py-1.5 text-sm font-medium tabular-nums transition",
                   draft.m === m
@@ -457,7 +462,7 @@ export function TimePickerField({
             <button
               key={p}
               type="button"
-              onClick={() => setDraft((d) => ({ ...d, period: p }))}
+              onClick={() => updateDraft({ period: p })}
               className={[
                 "rounded-lg py-2 text-xs font-bold transition",
                 draft.period === p
