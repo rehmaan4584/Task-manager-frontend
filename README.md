@@ -2,6 +2,14 @@
 
 Modern, responsive frontend for a full-stack task manager with auth flows, reminder creation, and real-time reminder notifications.
 
+## Live URL (deployed on AWS EC2)
+
+| Service | URL |
+|---------|-----|
+| App | http://16.16.198.166:3000 |
+
+**Backend API:** http://16.16.198.166:5000/api
+
 ## Why This Project
 
 This frontend is built to demonstrate production-style React skills for portfolio and remote-role evaluation:
